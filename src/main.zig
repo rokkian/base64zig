@@ -10,23 +10,29 @@ const lib = @import("base64zig_lib");
 
 
 pub fn main() !void {
-    // // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    // std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
+    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
 
-    // std.debug.print("Starting: Unix time (seconds): {}\n", .{std.time.timestamp()});
+    std.debug.print("Starting: Unix time (seconds): {d}\n", .{std.time.timestamp()});
 
-    // // stdout is for the actual output of your application, for example if you
-    // // are implementing gzip, then only the compressed bytes should be sent to
-    // // stdout, not any debugging messages.
-    // const stdout_file = std.io.getStdOut().writer();
-    // var bw = std.io.bufferedWriter(stdout_file);
-    // const stdout = bw.writer();
+    const time = get_current_time_date();
+    std.debug.print("The current time is: {!s}\n", .{time});
 
-    // try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    // stdout is for the actual output of your application, for example if you
+    // are implementing gzip, then only the compressed bytes should be sent to
+    // stdout, not any debugging messages.
+    const stdout_file = std.io.getStdOut().writer();
+    var bw = std.io.bufferedWriter(stdout_file);
+    const stdout = bw.writer();
 
-    // try bw.flush(); // Don't forget to flush!
+    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    
 
+    try bw.flush(); // Don't forget to flush!
 
+}
+
+fn get_current_time_date() ![]const u8{
     const allocator = std.heap.page_allocator;
     var env = try std.process.getEnvMap(allocator);
     defer env.deinit();
@@ -44,10 +50,18 @@ pub fn main() !void {
     // Generate date/time info for this instant
     const dt = now_local.time();
 
+    // Prepare a buffer for the formatted string
+    var formatted = std.ArrayList(u8).init(allocator);
+    defer formatted.deinit();
+
+    // Format using strftime-style format string
+    try dt.strftime(formatted.writer(), "%Y-%m-%d %H:%M:%S %Z");
+
+    // Print the formatted string
+    std.debug.print("{!s}\n", .{formatted.items});
+
     // Print it out
-    std.debug.print("{}", .{dt});
-
-
+    return std.fmt.allocPrint(allocator, "Hello, {!s}!\n", .{formatted.items});
 }
 
 test "simple test" {
