@@ -18,6 +18,17 @@ pub fn main() !void {
     const time = get_current_time_date();
     std.debug.print("The current time is: {!s}\n", .{time});
 
+    // -- Base64 code ---
+
+    const base64 = Base64.init();
+    const index_var = 28;
+    std.debug.print("Character at index {d}: {c}\n", .{index_var, base64._char_at(index_var)});
+
+
+
+
+    // -- Base64 end code ---
+
     // stdout is for the actual output of your application, for example if you
     // are implementing gzip, then only the compressed bytes should be sent to
     // stdout, not any debugging messages.
@@ -31,6 +42,23 @@ pub fn main() !void {
     try bw.flush(); // Don't forget to flush!
 
 }
+
+const Base64 = struct {
+    _table: *const [64]u8,
+
+    pub fn init() Base64 {
+        const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lower = "abcdefghijklmnopqrstuvwxyz";
+        const numbers_symb = "0123456789+/";
+        return Base64{
+            ._table = upper ++ lower ++ numbers_symb,
+        };
+    }
+
+    pub fn _char_at(self: Base64, index: usize) u8 {
+        return self._table[index];
+    }
+};
 
 fn get_current_time_date() ![]const u8{
     const allocator = std.heap.page_allocator;
